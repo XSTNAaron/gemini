@@ -138,51 +138,49 @@ async function handleEmbeddings (req, apiKey) {
 }
 
 const DEFAULT_MODEL = "gemini-1.5-pro-latest";
-async function handleCompletions (req, apiKey) {
-  let model = DEFAULT_MODEL;
-  switch(true) {
-    case typeof req.model !== "string":
-      break;
-    case req.model.startsWith("models/"):
-      model = req.model.substring(7);
-      break;
-    case req.model.startsWith("gemini-"):
-    case req.model.startsWith("learnlm-"):
-      model = req.model;
-  }
-  const TASK = req.stream ? "streamGenerateContent" : "generateContent";
-  let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}`;
-  if (req.stream) { url += "?alt=sse"; }
-  const response = await fetch(url, {
-    method: "POST",
-    headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
-    body: JSON.stringify(await transformRequest(req)), // try
-  });
 
-  let body = response.body;
-  if (response.ok) {
-    let id = generateChatcmplId(); //"chatcmpl-8pMMaqXMK68B3nyDBrapTDrhkHBQK";
-    if (req.stream) {
-      body = response.body
-        .pipeThrough(new TextDecoderStream())
-        .pipeThrough(new TransformStream({
-          transform: parseStream,
-          flush: parseStreamFlush,
-          buffer: "",
-        }))
-        .pipeThrough(new TransformStream({
-          transform: toOpenAiStream,
-          flush: toOpenAiStreamFlush,
-          streamIncludeUsage: req.stream_options?.include_usage,
-          model, id, last: [],
-        }))
-        .pipeThrough(new TextEncoderStream());
-    } else {
-      body = await response.text();
-      body = processCompletionsResponse(JSON.parse(body), model, id);
+async function handleCompletions (req, apiKey) {
+  let model = "gemini-2.5-flash";
+
+  if (typeof req.model === "string") {
+    if (req.model.startsWith("models/")) {
+      model = req.model.substring(7);
+    } else if (
+      req.model.startsWith("gemini-") ||
+      req.model.startsWith("learnlm-")
+    ) {
+      model = req.model;
     }
   }
-  return new Response(body, fixCors(response));
+
+  const url = `${BASE_URL}/${API_VERSION}/models/${model}:generateContent`;
+
+  const googleRequest = await transformRequest(req);
+
+  console.log("Calling Gemini:", url);
+  console.log("Model:", model);
+  console.log("Has API key:", !!apiKey);
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: makeHeaders(apiKey, {
+      "Content-Type": "application/json"
+    }),
+    body: JSON.stringify(googleRequest),
+  });
+
+  const text = await response.text();
+
+  console.log("Gemini status:", response.status);
+  console.log("Gemini response:", text);
+
+  return new Response(text, {
+    status: response.status,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
 }
 
 const harmCategory = [

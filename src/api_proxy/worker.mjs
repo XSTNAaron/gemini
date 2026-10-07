@@ -140,7 +140,7 @@ async function handleEmbeddings (req, apiKey) {
 const DEFAULT_MODEL = "gemini-1.5-pro-latest";
 
 async function handleCompletions (req, apiKey) {
-  let model = "gemini-2.5-flash";
+  let model = "gemini-3.8-flash";
 
   if (typeof req.model === "string") {
     if (req.model.startsWith("models/")) {

@@ -157,6 +157,8 @@ async function handleCompletions (req, apiKey) {
 
   const googleRequest = await transformRequest(req);
 
+  console.log("Google request:", JSON.stringify(googleRequest));
+  
   console.log("Calling Gemini:", url);
   console.log("Model:", model);
   console.log("Has API key:", !!apiKey);

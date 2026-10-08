@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = "AQ.Ab8RN6K80c8KcU3fth41MRe3XHNhx35w1dmlIUt7SPIDJHD89Q";
+const GEMINI_API_KEY = "AQ.Ab8RN6K7vj0SdymANjZp9rkKDDIFuhff-bf7znLNsV5i10fpTA";
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
